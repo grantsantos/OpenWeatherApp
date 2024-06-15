@@ -14,7 +14,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.rememberNavController
 import com.google.android.gms.location.LocationServices
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuth.AuthStateListener
@@ -23,21 +26,16 @@ import com.openweatherapp.common.Constants
 import com.openweatherapp.common.DefaultLocationClient
 import com.openweatherapp.common.LocationClient
 import com.openweatherapp.common.openAppSettings
-import com.openweatherapp.ui.components.LogoutConfirmation
-import com.openweatherapp.ui.components.PermissionDialog
 import com.openweatherapp.feature_weather.presentation.current_weather.CurrentWeatherScreenEvents
 import com.openweatherapp.feature_weather.presentation.current_weather.WeatherViewModel
-import com.openweatherapp.feaure_auth.presentation.login.LoginViewModel
-import com.openweatherapp.feaure_auth.presentation.sign_up.SignUpViewModel
-import com.openweatherapp.navigation.AppRouter
 import com.openweatherapp.navigation.OpenWeatherAppNav
 import com.openweatherapp.navigation.Screen
+import com.openweatherapp.ui.components.PermissionDialog
 import com.openweatherapp.ui.theme.OpenWeatherAppTheme
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import java.security.Permission
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -60,46 +58,23 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        initFirebaseAuthListener()
-
         locationClient = DefaultLocationClient(
             this,
             LocationServices.getFusedLocationProviderClient(this)
         )
         setContent {
             OpenWeatherAppTheme {
-                val viewModel = hiltViewModel<WeatherViewModel>()
-                val loginViewModel = hiltViewModel<LoginViewModel>()
-                val signUpViewModel = hiltViewModel<SignUpViewModel>()
-
-                RequestLocationPermission(viewModel)
-
-                if (viewModel.state.value.isPermissionDialogVisible) {
-                    PermissionDialog(
-                        isPermanentlyDeclined = !shouldShowRequestPermissionRationale(
-                            Manifest.permission.ACCESS_FINE_LOCATION
-                        ),
-                        onDismiss = {
-                            viewModel.onEvent(CurrentWeatherScreenEvents.HidePermissionDialog)
-                            finish()
-                        },
-                        onOnGrantPermission = {
-                            viewModel.onEvent(CurrentWeatherScreenEvents.HidePermissionDialog)
-                        },
-                        onGoToAppSettingsClick = {
-                            openAppSettings()
-                        }
-                    )
-                }
+                val navHostController = rememberNavController()
+                InitFirebaseAuthListener(navHostController)
+                RequestLocationPermission()
+                SetUpPermissionDialog()
 
                 OpenWeatherAppNav(
-                    firebaseAuth  = firebaseAuth,
-                    weatherViewModel = viewModel,
+                    navHostController = navHostController,
+                    firebaseAuth = firebaseAuth,
                     getCurrentLocation = {
-                        getCurrentLocation(viewModel)
-                    },
-                    loginViewModel = loginViewModel,
-                    signUpViewModel = signUpViewModel
+                        getCurrentLocation(it)
+                    }
                 )
             }
         }
@@ -130,7 +105,7 @@ class MainActivity : ComponentActivity() {
     }
 
     @Composable
-    private fun RequestLocationPermission(viewModel: WeatherViewModel) {
+    private fun RequestLocationPermission(viewModel: WeatherViewModel = hiltViewModel()) {
         var allPermissionsGranted by remember { mutableStateOf(false) }
 
         val multiplePermissionResultLauncher = rememberLauncherForActivityResult(
@@ -149,44 +124,75 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    private fun initFirebaseAuthListener() {
-        authStateListener = AuthStateListener {
-            checkForActiveSession(it.currentUser)
-
-            if (it.currentUser == null) {
-                AppRouter.navigateTo(
-                    Screen.LoginScreen
-                )
-
-                Log.d(TAG, " FirbaseAuthStateListener: User signed out")
-            } else {
-                AppRouter.navigateTo(
-                    Screen.WeatherScreen
-                )
-                Log.d(TAG, " FirbaseAuthStateListener: User signed in")
-            }
+    @Composable
+    private fun SetUpPermissionDialog(viewModel: WeatherViewModel = hiltViewModel()) {
+        if (viewModel.state.value.isPermissionDialogVisible) {
+            PermissionDialog(
+                isPermanentlyDeclined = !shouldShowRequestPermissionRationale(
+                    Manifest.permission.ACCESS_FINE_LOCATION
+                ),
+                onDismiss = {
+                    viewModel.onEvent(CurrentWeatherScreenEvents.HidePermissionDialog)
+                    finish()
+                },
+                onOnGrantPermission = {
+                    viewModel.onEvent(CurrentWeatherScreenEvents.HidePermissionDialog)
+                },
+                onGoToAppSettingsClick = {
+                    openAppSettings()
+                }
+            )
         }
     }
 
-    private fun checkForActiveSession(currentUser: FirebaseUser?) {
+    @Composable
+    private fun InitFirebaseAuthListener(
+        navHostController: NavHostController
+    ) {
+        authStateListener = AuthStateListener {
+            checkForActiveSession(
+                navHostController = navHostController,
+                        it.currentUser
+            )
+
+            if (it.currentUser == null) {
+                Log.d(TAG, " FirbaseAuthStateListener: User signed out")
+            } else {
+                Log.d(TAG, " FirbaseAuthStateListener: User signed in")
+            }
+        }
+
+        firebaseAuth.addAuthStateListener(authStateListener)
+    }
+
+    private fun checkForActiveSession(
+        navHostController: NavHostController,
+        currentUser: FirebaseUser?
+    ) {
         if (currentUser == null) {
-            AppRouter.navigateTo(
+            navHostController.navigate(
                 Screen.LoginScreen
             )
         } else {
-            AppRouter.navigateTo(
+            navHostController.navigate(
                 Screen.WeatherScreen
             )
         }
     }
 
-    override fun onStart() {
-        super.onStart()
-        firebaseAuth.addAuthStateListener(authStateListener)
-    }
-
     override fun onStop() {
         super.onStop()
-        firebaseAuth.removeAuthStateListener(authStateListener)
+        if (::authStateListener.isInitialized) {
+            firebaseAuth.removeAuthStateListener(authStateListener)
+        }
+    }
+}
+
+val NavHostController.canGoBack : Boolean
+    get() = currentBackStackEntry?.lifecycle?.currentState == Lifecycle.State.RESUMED
+
+fun NavHostController.navigateBack() {
+    if (canGoBack) {
+        popBackStack()
     }
 }

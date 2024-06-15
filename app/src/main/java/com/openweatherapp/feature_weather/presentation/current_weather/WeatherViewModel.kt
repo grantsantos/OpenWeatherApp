@@ -8,8 +8,6 @@ import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuth
 import com.openweatherapp.common.Resource
 import com.openweatherapp.feature_weather.domain.use_case.WeatherUseCases
-import com.openweatherapp.navigation.AppRouter
-import com.openweatherapp.navigation.Screen
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.launchIn

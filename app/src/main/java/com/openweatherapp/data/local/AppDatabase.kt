@@ -1,4 +1,4 @@
-package com.openweatherapp.common.local
+package com.openweatherapp.data.local
 
 import androidx.room.Database
 import androidx.room.RoomDatabase

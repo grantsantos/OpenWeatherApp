@@ -5,10 +5,10 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.navigation.NavHostController
 import com.google.firebase.auth.FirebaseAuth
 import com.openweatherapp.common.Resource
 import com.openweatherapp.feaure_auth.domain.ValidateLoginFields
-import com.openweatherapp.navigation.AppRouter
 import com.openweatherapp.navigation.Screen
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.launchIn
@@ -70,6 +70,7 @@ class LoginViewModel @Inject constructor(
                     }
                 }
                 is Resource.Success -> {
+                    Log.d("LoginViewModel", "pasok si gago")
                     _state.value = state.value.copy(
                         emailHasError = false,
                         emailErrorMessage = "",
@@ -96,9 +97,6 @@ class LoginViewModel @Inject constructor(
             .addOnCompleteListener {
                 if (it.isSuccessful) {
                     _state.value = LoginState()
-                    AppRouter.navigateTo(
-                        destination = Screen.WeatherScreen
-                    )
                 }
                 _state.value = state.value.copy(
                     loginInProgress = false

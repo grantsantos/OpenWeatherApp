@@ -4,6 +4,7 @@ plugins {
     alias(libs.plugins.jetbrains.kotlin.kapt)
     alias(libs.plugins.dagger.hilt.android)
     alias(libs.plugins.google.services)
+    alias(libs.plugins.kotlinx.serialization)
 }
 
 android {
@@ -107,5 +108,8 @@ dependencies {
 
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.google.truth)
+
+    implementation(libs.navigation.compose)
+    implementation(libs.kotlinx.serialization.json)
 
 }

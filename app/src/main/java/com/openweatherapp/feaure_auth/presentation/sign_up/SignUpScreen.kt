@@ -1,5 +1,6 @@
 package com.openweatherapp.feaure_auth.presentation.sign_up
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -45,10 +46,12 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.rememberNavController
 import com.openweatherapp.R
 import com.openweatherapp.feature_weather.presentation.current_weather.CurrentWeatherScreenEvents
 import com.openweatherapp.feaure_auth.presentation.login.LoginState
-import com.openweatherapp.navigation.AppRouter
+import com.openweatherapp.navigateBack
 import com.openweatherapp.navigation.Screen
 import com.openweatherapp.navigation.SystemBackButtonHandler
 import com.openweatherapp.ui.theme.Purple40
@@ -56,12 +59,12 @@ import com.openweatherapp.ui.theme.Purple40
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SignUpScreen(
+    navHostController: NavHostController,
     state: SignUpState,
     onEmailTextChanged: (SignUpEvents) -> Unit,
     onPasswordTextChanged: (SignUpEvents) -> Unit,
     onSignUpButtonClicked: (SignUpEvents) -> Unit
 ) {
-
     Box(
         modifier = Modifier
             .fillMaxSize(),
@@ -79,9 +82,7 @@ fun SignUpScreen(
                     modifier = Modifier
                         .padding(start = 10.dp, top = 10.dp),
                     onClick = {
-                        AppRouter.navigateTo(
-                            Screen.LoginScreen
-                        )
+                       navHostController.navigateBack()
                     }) {
                     Icon(
                         modifier = Modifier
@@ -93,7 +94,8 @@ fun SignUpScreen(
                 }
 
                 Column(
-                    modifier = Modifier.fillMaxSize()
+                    modifier = Modifier
+                        .fillMaxSize()
                         .background(Color.White)
                         .padding(start = 28.dp, top = 0.dp, end = 28.dp, bottom = 10.dp)
                 ) {
@@ -260,11 +262,6 @@ fun SignUpScreen(
             }
         }
 
-        SystemBackButtonHandler {
-            AppRouter.navigateTo(
-                destination = Screen.LoginScreen
-            )
-        }
     }
 }
 
@@ -272,6 +269,7 @@ fun SignUpScreen(
 @Composable
 private fun SignUpScreenPreview() {
     SignUpScreen(
+        navHostController = rememberNavController(),
         state = SignUpState(signUpProgress = false),
         onEmailTextChanged = {},
         onPasswordTextChanged = {},

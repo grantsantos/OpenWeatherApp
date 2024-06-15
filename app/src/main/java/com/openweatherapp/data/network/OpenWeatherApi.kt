@@ -1,4 +1,4 @@
-package com.openweatherapp.common.network
+package com.openweatherapp.data.network
 
 import com.openweatherapp.feature_weather.data.remote.model.CurrentWeatherDto
 import retrofit2.http.GET

@@ -5,8 +5,8 @@ import androidx.room.Room
 import com.google.firebase.auth.FirebaseAuth
 import com.openweatherapp.common.Constants
 import com.openweatherapp.common.EncryptionUtil
-import com.openweatherapp.common.local.AppDatabase
-import com.openweatherapp.common.network.OpenWeatherApi
+import com.openweatherapp.data.local.AppDatabase
+import com.openweatherapp.data.network.OpenWeatherApi
 import com.openweatherapp.feature_weather.data.repository.WeatherRepositoryImpl
 import com.openweatherapp.feature_weather.domain.repository.WeatherRepository
 import com.openweatherapp.feature_weather.domain.use_case.GetCurrentWeather

@@ -1,8 +1,8 @@
 package com.openweatherapp.feature_weather.data.repository
 
-import com.openweatherapp.common.local.AppDatabase
+import com.openweatherapp.data.local.AppDatabase
 import com.openweatherapp.feature_weather.data.local.model.WeatherEntity
-import com.openweatherapp.common.network.OpenWeatherApi
+import com.openweatherapp.data.network.OpenWeatherApi
 import com.openweatherapp.feature_weather.data.remote.model.CurrentWeatherDto
 import com.openweatherapp.feature_weather.domain.model.current_weather.CurrentWeather
 import com.openweatherapp.feature_weather.domain.repository.WeatherRepository
